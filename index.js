@@ -3,6 +3,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const databaseConnect =require("./config/databaseConnect");
 const stepCount=require("./model/stepCountSchema");
+const EnvironmentalData=require("./model/temperetatureSchema");
 const cors = require("cors");
 require("dotenv").config();
 
@@ -14,6 +15,7 @@ app.use(cors({
     credentials: true
 }))
 databaseConnect.connect();
+
 // Endpoint to receive alerts from ESP32 device
 app.post('/stepCount',async (req, res) =>{
     const { steps } = req.body;
@@ -43,6 +45,48 @@ app.post('/stepCount',async (req, res) =>{
 
 });
 
+app.post('/environmentalData', async (req, res) => {
+    const {  humidity, temperature } = req.body;
+    console.log("Humidity:", humidity);
+    console.log("Temperature:", temperature);
+    try {
+        // Check if steps data is received and handle it accordingly
+
+            if (humidity !== 0) {
+                const existingDocument = await EnvironmentalData.findOne();
+                if (!existingDocument) {
+                    const data = await EnvironmentalData.create({
+
+                        humidity: humidity || 0,
+                        temperature: temperature || 0,
+                        lastUpdatedTimestamp: Date.now()
+                    });
+                    console.log("Initial environmental data document created:", data);
+                }
+                // Update the existing document to increment the step count
+                const updatedData = await EnvironmentalData.updateOne({}, {
+
+                    $set: { humidity: humidity || 0, temperature: temperature || 0, lastUpdatedTimestamp: Date.now() }
+                });
+                console.log(' environmental data updated in the database. New steps:', updatedData.steps);
+                return res.status(200).json({
+                    success: true,
+                    message: "Step count and environmental data updated successfully"
+                });
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: "Steps data is missing"
+                });
+            }
+
+    } catch (error) {
+        console.error('Error updating step count and environmental data:', error);
+        res.status(500).json({ error: 'Error updating step count and environmental data' });
+    }
+});
+
+
 
 //endpoint to fetch the current step count from the database
 app.get('/stepsdata', async (req, res) => {
@@ -58,6 +102,17 @@ app.get('/stepsdata', async (req, res) => {
         res.status(500).send({ error: 'Error fetching step count data.' });
     }
 });
+
+app.get('/tempdata',async (req,res)=>{
+    try {
+        const data = await EnvironmentalData.find().sort({ timestamp: -1 }).limit(10); // Fetch latest 10 records
+        res.status(200).json(data);
+    }catch (error){
+        console.error('Error fetching temp data:', err);
+        res.status(500).send({ error: 'Error fetching temp data.' });
+    }
+})
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
