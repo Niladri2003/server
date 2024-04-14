@@ -11,9 +11,10 @@ require("dotenv").config();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: "*",
     credentials: true
 }))
+console.log(process.env.CORS_ORIGIN);
 databaseConnect.connect();
 
 // Endpoint to receive alerts from ESP32 device
