@@ -19,7 +19,7 @@ exports.temphumidatareciver= async (req,res)=>{
             temperature: temperature || 0,
             lastUpdatedTimestamp: Date.now()
         });
-        if(temperature > 38){
+        if(temperature > 40){
             client.messages
                 .create({
                     body: `Temperature increased from ${temperature}!`,
