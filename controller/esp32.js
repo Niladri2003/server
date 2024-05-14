@@ -19,22 +19,22 @@ exports.temphumidatareciver= async (req,res)=>{
             temperature: temperature || 0,
             lastUpdatedTimestamp: Date.now()
         });
-        if(temperature > 38){
-            client.messages
-                .create({
-                    body: `Temperature increased from ${temperature}!`,
-                    from: '+13203136922',
-                    to: '+919874122331'
-                })
-                .then(message => {
-                    console.log('Message sent:', message.sid);
-
-                })
-                .catch(error => {
-                    console.error('Error sending message:', error);
-
-                });
-        }
+        // if(temperature > 40){
+        //     client.messages
+        //         .create({
+        //             body: `Temperature increased from ${temperature}!`,
+        //             from: '+13203136922',
+        //             to: '+919874122331'
+        //         })
+        //         .then(message => {
+        //             console.log('Message sent:', message.sid);
+        //
+        //         })
+        //         .catch(error => {
+        //             console.error('Error sending message:', error);
+        //
+        //         });
+        // }
         console.log("Environmental data document created:", data);
 
         return res.status(200).json({
