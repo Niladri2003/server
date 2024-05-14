@@ -2,8 +2,10 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const databaseConnect =require("./config/databaseConnect");
-const EnvironmentalData=require("./model/temperetatureSchema");
+const TempAndHumidty=require("./model/temperetatureSchema");
 const cors = require("cors");
+
+
 
 require("dotenv").config();
 const PORT = process.env.PORT || 3000;
@@ -30,7 +32,7 @@ app.post('/humidity', async (req, res) => {
     console.log("Temperature:", temperature);
     try {
         // Create a new document for each data point received
-        const data = await EnvironmentalData.create({
+        const data = await TempAndHumidty.create({
             humidity: humidity || 0,
             temperature: temperature || 0,
         });
@@ -50,7 +52,7 @@ app.use("/api/v1/esp32",esp32routes);
 // endpoint for frontend to send latest 10 records from db
 app.get('/tempdata',async (req,res)=>{
     try {
-        const data = await EnvironmentalData.find().sort({ timestamp: -1 }).limit(10); // Fetch latest 10 records
+        const data = await TempAndHumidty.find({}).sort({ timestamp: -1 }).limit(10); // Fetch latest 10 records
         res.status(200).json(data);
     }catch (error){
         console.error('Error fetching temp data:', error);
@@ -84,13 +86,13 @@ app.get('/data', async (req, res) => {
         }
 
         // Ensure start date is not earlier than available data
-        const earliestDataDate = await EnvironmentalData.findOne().sort({ timestamp: 1 }).select('timestamp');
+        const earliestDataDate = await TempAndHumidty.findOne().sort({ timestamp: 1 }).select('timestamp');
         if (earliestDataDate && startDate < earliestDataDate.timestamp) {
             startDate = earliestDataDate.timestamp;
         }
 
         // Perform aggregation to group data based on time intervals
-        const data = await EnvironmentalData.aggregate([
+        const data = await TempAndHumidty.aggregate([
             {
                 $match: {
                     timestamp: { $gte: startDate, $lte: endDate } // Filter records within the specified time range
